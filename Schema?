@@ -1,0 +1,33 @@
+Lost
+	_id
+	Item
+	Description
+	Tags
+	Lost Location
+	
+	*Date Reported
+	*Date Created
+Found
+	_id
+	Item
+	Description
+	Tags
+	Found Location
+	
+	*Date Reported
+	*Date Created
+	
+Connection
+	Lost id
+	Found id
+	
+mongo linus.mongohq.com:10089/LF -u <user> -p<password>
+
+alex
+kyle
+goof
+
+you know the password
+
+my $mango = Mango->new('linus.mongohq.com:10089');
+my $db = $mango->db('LF');
