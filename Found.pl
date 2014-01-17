@@ -5,11 +5,11 @@ use Mango;
 my $mango = Mango->new('mongodb://found:mojo@linus.mongohq.com:10089/LF');
 my $db = $mango->db;
 my $losts = $db->collection('Lost');
-my $id = $losts->insert({bar => 'foo'});
+
 
 get '/' => sub {
   my $self = shift;
-  $self->render(text => $id);
+  $self->render('index');
 };
 
 app->start;
