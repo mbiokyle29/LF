@@ -1,33 +1,55 @@
 Lost
 	_id
-	Item
-	Description
-	Tags
-	Lost Location
-	
-	*Date Reported
-	*Date Created
+	Item  Stinrg
+	Description String
+	Tags  [ ]
+	Lost Location String
+  Date Created
+  Matched Bool
+
 Found
 	_id
 	Item
 	Description
 	Tags
 	Found Location
-	
-	*Date Reported
-	*Date Created
-	
+  Date Created
+  Matched
+
 Connection
 	Lost id
 	Found id
-	
+
 mongo linus.mongohq.com:10089/LF -u <user> -p<password>
 
 alex
 kyle
 goof
+found -> mojo
 
 you know the password
 
 my $mango = Mango->new('linus.mongohq.com:10089');
 my $db = $mango->db('LF');
+
+sub insert_found()
+
+&insert_found("Kyle","HeadLamp", "My fave water bottle", \@tags, "Madison", time() );
+
+sub insert_found()
+{
+  my ($user, $item, $desc, $tags, $loc, $ts) = @_;
+  my @tag_arr= @{$tags};
+  my $id = $losts->insert
+  (
+     {
+       User => $user,
+       Item => $item,
+       Description => $desc,
+       Tags => ['Blue', 'Has Water', 'MHacks'],
+       Found_Location => $loc,
+       Date_Created => $ts,
+       Matched => 0
+      }
+  );
+}
