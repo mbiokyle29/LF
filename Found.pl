@@ -79,8 +79,6 @@ sub match_maker
 
       if(amatch($l_loc,["i"],$f_loc))
       {
-        say "Locations matched";
-        say "Lets check tags";
         foreach my $tagl (@l_tags)
         {
           $tagl =~ s/\s//g;
@@ -89,8 +87,6 @@ sub match_maker
           {
             $tagf =~ s/^\s//g;
             next if( (length($tagf) < 2) || grep(/^$tagf$/, @unimp) );
-
-            say "Checking lost tag $tagl against $tagf";
             if(lc($tagl) eq lc($tagf))    { $total++;   next; }
             if(amatch($tagl,["i"],$tagf)) { $total+=.9; next; }
             if(index($tagl, $tagf) != -1) { $total+=.2; next; }
