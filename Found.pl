@@ -2,8 +2,6 @@
 use Mojolicious::Lite;
 use MongoDB;
 use MongoDB::OID;
-use MongoDB::Cursor;
-use Data::Dumper;
 
 my $mongo_client = MongoDB::MongoClient->new
 (
