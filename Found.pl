@@ -1,38 +1,35 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
-use Mango;
+use MongoDB;
+use MongoDB::OID;
+use MongoDB::Cursor;
+use Data::Dumper;
 
-my $mango = Mango->new('mongodb://found:mojo@linus.mongohq.com:10089/LF');
-my $db = $mango->db;
+my $mongo_client = MongoDB::MongoClient->new
+(
+  host => 'linus.mongohq.com',
+  port => 10089,
+  db_name => 'LF',
+  username => 'found',
+  password => 'mojo',
+);
 
-my $losts = $db->collection('Lost');
-my $founds = $db->collection('Found');
+my $db = $mongo_client->get_database('LF');
 
-my $lost_c = Mango::Cursor->new(collection => $losts);
-my $lost_docs = $lost_c->all;
-my $found_c = Mango::Cursor->new(collection => $founds);
-my $found_docs = $found_c->all;
+my $losts = $db->get_collection('Lost');
+my $founds = $db->get_collection('Found');
+
+my @all_losts = ($losts->query({}))->all;
+my @all_founds = ($founds->query({}))->all;
 
 get '/' => sub
 {
   my $self = shift;
-  $self->render('index');
+  $self->render(text => 'Lost and Found End Point');
 };
 
-get '/ios-7/end/lost' => sub { shift->render(json => $lost_docs ) };
-get '/ios-7/end/found' => sub { shift->render(json => $found_docs ) };
+get '/ios-7/end/lost' => sub { shift->render(json => \@all_founds) };
+get '/ios-7/end/found' => sub { shift->render(json => \@all_losts ) };
+
 
 app->start;
-__DATA__
-
-@@ index.html.ep
-% layout 'default';
-% title 'Welcome';
-Lost and Found endpoint
-
-@@ layouts/default.html.ep
-<!DOCTYPE html>
-<html>
-  <head><title><%= title %></title></head>
-  <body><%= content %></body>
-</html>
