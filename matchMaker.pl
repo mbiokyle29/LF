@@ -1,70 +1,57 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Mango;
-use Mango::BSON ':bson';
-use Data::Dumper;
+use MongoDB;
+use MongoDB::OID;
 use String::Approx 'amatch';
-use List::Util 'max';
+use feature 'say';
 
-my $mango = Mango->new('mongodb://found:mojo@linus.mongohq.com:10089/LF');
-my $db = $mango->db;
-
-my $losts = $db->collection('Lost');
-my $founds = $db->collection('Found');
-
-my $lost_c = Mango::Cursor->new
+my $mongo_client = MongoDB::MongoClient->new
 (
-  collection => $losts,
-  query => {Matched => 0},
+  host => 'linus.mongohq.com',
+  port => 10089,
+  db_name => 'LF',
+  username => 'found',
+  password => 'mojo',
 );
-my $found_c = Mango::Cursor->new
-(
-  collection => $founds,
-  query => {Matched => 0}
-);
+
+my $db = $mongo_client->get_database('LF');
+
+my $losts = $db->get_collection('Lost');
+my $founds = $db->get_collection('Found');
+
+my $lost_c = $losts->query( {Matched => 0} );
+
 
 while(my $lost = $lost_c->next)
 {
-  my $item_l = $$lost{'Item'};
-  my $loc_l = $$lost{'Found_Location'};
-  my @tags_l = @{$$lost{'Tags'}};
-  my $lost_id = $$lost{'_id'}{'oid'};
-  my %match_scores;
+  my $lost_ref = MongoDB::DBRef->new( db => 'LF', ref => $losts, id => $lost->{_id} );
+  my $best_ref;
+  my $most_matches = 0;
 
+  my $found_c = $founds->query({Matched => 0});
   while(my $found = $found_c->next)
   {
-    my $matches = 0;
-    my $item_f = $$found{'Item'};
-    my $loc_f = $$found{'Found_Location'};
-    my @tags_f = @{$$lost{'Tags'}};
-    my $id = $$found{'_id'}{'oid'};
-
-    ## Main Match Loop
-    if(amatch($loc_l,["i"],$loc_f))
+    my $matches;
+    my $found_ref = MongoDB::DBRef->new( db => 'LF', ref => $founds, id => $found->{_id} );
+    if(amatch($lost->{Location},["i"],$found->{Location}))
     {
-      foreach my $tag (@tags_l)
+      foreach my $tag (@{$lost->{'Tags'}})
       {
-        my $count = amatch($tag,["i"], @tags_f);
+        my $count = amatch($tag,["i"], @{$found->{Tags}});
         $matches+=$count;
       }
     }
-    if($matches) { $match_scores{$id} = $matches; }
-  }
-  my $highest = 0;
-  my $highest_id = "";
-  foreach my $id (keys(%match_scores))
-  {
-    if($match_scores{$id} > $highest)
+    if($matches && $matches > $most_matches)
     {
-      $highest = $match_scores{$id};
-      $highest_id = $id;
+      $most_matches = $matches;
+      $best_ref = $found_ref;
     }
   }
 
-  print "$highest_id matches $lost_id";
-
-  my $found_oid = bson_oid($highest_id);
-  $losts->update({_id => $lost_oid}, {Matched => 1, Match_id => $highest_id });
-  $founds->update({_id => $found_oid}, {Matched => 1, Match_id => $lost_id});
+  if($best_ref)
+  {
+    $losts->update({ _id => $lost_ref->id }, { '$set' => { Matched => 1, Match_id => $best_ref->id } }, { 'upsert' => 1 } );
+    $founds->update({ _id => $best_ref->id }, { '$set' => { Matched => 1, Match_id => $lost_ref->id } }, { 'upsert' => 1 } );
+  }
 }
