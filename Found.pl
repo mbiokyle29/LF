@@ -91,7 +91,10 @@ sub match_maker
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
-    my @l_PM = @{ $lost->{PMatch_id}};
+    if ($lost->{PMatch_id})
+    {
+      my @l_PM = @{ $lost->{PMatch_id}};
+    }
 
     my $found_c = $founds->query({Matched => 0});
     while(my $found = $found_c->next)
