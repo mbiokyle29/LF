@@ -26,7 +26,7 @@ get '/auth' => sub
 {
   my $self-> shift;
   my $req = $self->tx->req;
-  $self->render(text => $req);
+  $self->render(text => "YEAH");
 };
 
 get '/' => sub
