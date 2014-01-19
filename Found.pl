@@ -42,6 +42,7 @@ post '/no' => sub
     { '$push' => { Rejects => $rej_oid } },
     { 'upsert' => 1 }
   );
+  shift->render(text => 'YEAH');
 };
 
 post '/yes' => sub
@@ -61,6 +62,7 @@ post '/yes' => sub
     { _id => $found_oid },
     { '$set' => { Matched => 1 } },
   );
+  shift->render(text => 'YEAH');
 };
 
 get '/ios-7/end/lost' => sub
