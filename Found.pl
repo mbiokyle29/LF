@@ -22,7 +22,7 @@ my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
 my $users = $db->get_collection('users');
 
-get '/auth' => sub
+any '/auth' => sub
 {
   my $self-> shift;
   my $req = $self->tx->req;
