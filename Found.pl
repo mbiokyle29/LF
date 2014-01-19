@@ -24,7 +24,7 @@ my @all_founds = ($founds->query({}))->all;
 get '/' => sub
 {
   my $self = shift;
-  $self->render(text => 'Lost and Found End Point');
+  $self->render('index');
 };
 
 post '/run' => sub { &match_maker; shift->render(text => 'YEAH'); };
@@ -67,7 +67,7 @@ sub match_maker
 
     while(my $found = $found_c->next)
     {
-      my $found_ref = MongoDB::DBRef->new( db => 'LF', ref => $founds, id => $found->{_id} );
+      my $found_ref = MongoDB::DBRef->new( db=> 'LF', ref => $founds, id => $found->{_id} );
 
       # Found Vars for matching
       my $f_loc = $found->{Location};
@@ -104,3 +104,10 @@ sub match_maker
   }
 }
 app->start;
+__DATA__
+
+@@index.html.ep
+  <div style="margin-left:auto;margin-right:auto;">
+    <h1>Lost and Found MatchMaker Backend</h1>
+    <image src="http://jozef.warum.net/img/perl-5-raptor.png">
+  </div>
