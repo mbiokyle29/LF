@@ -52,7 +52,7 @@ get '/send' => sub
   my $self = shift;
   my $pin = '9999';
   my $trans = $api->send($pin,'812-232-2342','1.00','Test from Perl API');
-  $self->render(text => $trans);
+  $self->render(text => $api->get_errors());
 };
 
 get '/' => sub
