@@ -12,6 +12,7 @@ my $secret = 'Cf7XFcqol/86YGd1DC8GbEcsySgWiCFt/n499zULopwa5FezC9';
 my $redirect_url = 'http://mysterious-stream-6921.herokuapp.com/auth';
 my $api = WebService::Dwolla->new($key,$secret,$redirect_url,['send']);
 my $ua = Mojo::UserAgent->new;
+$ua->post($request);
 
 my $mongo_client = MongoDB::MongoClient->new
 (
@@ -26,12 +27,6 @@ my $db = $mongo_client->get_database('LF');
 my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
 my $users = $db->get_collection('users');
-
-any '/start' => sub
-{
-  $ua->post($request);
-  shift->render(text => "FUCk");
-};
 
 any '/auth' => sub
 {
