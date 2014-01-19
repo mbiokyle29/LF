@@ -1,12 +1,18 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
+use Mojo::UserAgent;
 use MongoDB;
 use MongoDB::OID;
 use String::Approx 'amatch';
+use WebService::Dwolla;
 
-##
-use Data::Dumper;
-###
+my $request = "https://uat.dwolla.com/oauth/v2/authenticate/?response_type=code&redirect_uri=http%3A%2F%2Fmysterious-stream-6921.herokuapp.com%2Fauth&client_id=Jwj1SCxTtuUl4TgqwwkCZMZr0Olqm1k7aJ%2BTGpZSx25YYMxH78&scope=send";
+my $key    = 'Jwj1SCxTtuUl4TgqwwkCZMZr0Olqm1k7aJ+TGpZSx25YYMxH78';
+my $secret = 'Cf7XFcqol/86YGd1DC8GbEcsySgWiCFt/n499zULopwa5FezC9';
+my $redirect_url = 'http://mysterious-stream-6921.herokuapp.com/auth';
+my $api = WebService::Dwolla->new($key,$secret,$redirect_url,['send']);
+my $ua = Mojo::UserAgent->new;
+$ua->post($request);
 
 my $mongo_client = MongoDB::MongoClient->new
 (
@@ -25,8 +31,28 @@ my $users = $db->get_collection('users');
 any '/auth' => sub
 {
   my $self = shift;
-  my $req = $self->param('code');
-  $self->render(text => $req);
+
+  my $code = $self->param('code');
+
+  # Exchange the temporary code given to us in the querystring, for
+  # a never-expiring OAuth access token.
+  my $token_get = "http//mysterious-stream-6921.herokuapp.com/token";
+  $api->request_token($code,);
+};
+
+any '/token' => sub
+{
+  my $self = shift;
+  my $token = $self->param('code');
+  $api->set_token($token);
+};
+
+get '/send' => sub
+{
+  my $self = shift;
+  my $pin = '9999';
+  my $trans = $api->send($pin,'812-232-2342','1.00','Test from Perl API');
+  $self->render(text => $trans);
 };
 
 get '/' => sub
