@@ -101,7 +101,10 @@ sub match_maker
     {
 
       my $inP = 0;
-      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $inP = 1; } }
+      if(@l_PM)
+      {
+        foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $inP = 1; } }
+      }
       next if($inP);
 
       my $found_ref = MongoDB::DBRef->new( db=> 'LF', ref => $founds, id => $found->{_id} );
