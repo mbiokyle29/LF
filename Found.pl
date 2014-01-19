@@ -12,7 +12,6 @@ my $secret = 'Cf7XFcqol/86YGd1DC8GbEcsySgWiCFt/n499zULopwa5FezC9';
 my $redirect_url = 'http://mysterious-stream-6921.herokuapp.com/auth';
 my $api = WebService::Dwolla->new($key,$secret,$redirect_url,['send']);
 my $ua = Mojo::UserAgent->new;
-$ua->post($request);
 
 my $mongo_client = MongoDB::MongoClient->new
 (
@@ -28,6 +27,11 @@ my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
 my $users = $db->get_collection('users');
 
+any '/start' => sub
+{
+  $ua->post($request);
+};
+
 any '/auth' => sub
 {
   my $self = shift;
@@ -37,7 +41,7 @@ any '/auth' => sub
   # Exchange the temporary code given to us in the querystring, for
   # a never-expiring OAuth access token.
   my $token_get = "http//mysterious-stream-6921.herokuapp.com/token";
-  $api->request_token($code,);
+  $api->request_token($code,$token_get);
 };
 
 any '/token' => sub
