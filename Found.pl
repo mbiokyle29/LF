@@ -97,17 +97,33 @@ sub match_maker
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
-    my @l_PM = @{ $lost->{PMatch_id}};
-    my @l_R = @{ $lost->{Rejects}};
+    my @l_PM;
+    my @l_R;
+
+    if($lost->{PMatch_id})
+    {
+      @l_PM = @{ $lost->{PMatch_id} };
+    }
+
+    if($lost->{Rejects})
+    {
+      @l_R = @{ $lost->{Rejects} };
+    }
 
     my $found_c = $founds->query({Matched => 0});
     while(my $found = $found_c->next)
     {
 
       my $black_list = 0;
+      if(@l_PM)
+      {
+        foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+      }
 
-      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
-      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+      if(@l_R)
+      {
+        foreach my $arr (@l_R) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+      }
 
       next if($black_list);
 
