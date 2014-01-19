@@ -25,8 +25,8 @@ my $users = $db->get_collection('users');
 any '/auth' => sub
 {
   my $self = shift;
-  my $req = $self->tx->req;
-  $self->render(text => "YEAH");
+  my $req = $self->param('code');
+  $self->render(text => $req);
 };
 
 get '/' => sub
