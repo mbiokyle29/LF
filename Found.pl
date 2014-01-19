@@ -23,7 +23,11 @@ get '/' => sub
   $self->render('index');
 };
 
-post '/run' => sub { &match_maker; shift->render(text => 'YEAH'); };
+post '/run' => sub
+{
+  sleep 5;
+  &match_maker; shift->render(text => 'YEAH');
+};
 
 post '/no' => sub
 {
@@ -105,8 +109,8 @@ sub match_maker
     }
     if($best_ref && $best_total > 1)
     {
-      $losts->update({ _id => $lost_ref->{id} }, { '$set' => { Matched => 1, PMatch_id => $best_ref->{id} } }, { 'upsert' => 1 } );
-      $founds->update({ _id => $best_ref->{id} }, { '$set' => { Matched => 1, PMatch_id => $lost_ref->{id} } }, { 'upsert' => 1 } );
+      $losts->update( { _id => $lost_ref->{id} }, { '$set' => { Matched => 1}, '$push' => { PMatch_id => $best_ref->{id} }},  { 'upsert' => 1 } );
+      $founds->update({ _id => $best_ref->{id} }, { '$set' => { Matched => 1}, '$push' => { PMatch_id => $lost_ref->{id} }},  { 'upsert' => 1 } );
     }
   }
 }
