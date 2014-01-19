@@ -91,6 +91,7 @@ sub match_maker
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
+    my @l_PM;
     if ($lost->{PMatch_id})
     {
       my @l_PM = @{ $lost->{PMatch_id}};
@@ -101,7 +102,7 @@ sub match_maker
     {
 
       my $inP = 0;
-      if(@l_PM)
+      if($l_PM[0])
       {
         foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $inP = 1; } }
       }
