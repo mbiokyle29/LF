@@ -14,12 +14,8 @@ my $mongo_client = MongoDB::MongoClient->new
 );
 
 my $db = $mongo_client->get_database('LF');
-
 my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
-
-my @all_losts = ($losts->query({}))->all;
-my @all_founds = ($founds->query({}))->all;
 
 get '/' => sub
 {
@@ -29,26 +25,37 @@ get '/' => sub
 
 post '/run' => sub { &match_maker; shift->render(text => 'YEAH'); };
 
-get '/ios-7/end/lost' => sub { shift->render(json => \@all_founds) };
-get '/ios-7/end/found' => sub { shift->render(json => \@all_losts ) };
+post '/no' => sub
+{
+  my $self = shift;
+  my $rejected_ref = $self->param('Reject');
+  my $lost_ref = $self->param('Lost');
+  ##
+  $self->render(text => "$rejected_ref   $lost_ref");
+  ##
+  #$losts->update
+  #(
+  #  { _id => $lost_ref->{_id} },
+  #  { '$push' => { Rejects => $rejected_ref->{_id} } },
+  #  { 'upsert' => 1 }
+  #);
+};
+
+get '/ios-7/end/lost' => sub
+{
+  my @all_losts = ($losts->query({}))->all;
+  shift->render(json => \@all_losts )
+};
+
+get '/ios-7/end/found' => sub
+{
+  my @all_founds = ($founds->query({}))->all;
+  shift->render(json => \@all_founds)
+};
 
 sub match_maker
 {
   my @unimp = qw(the of to and a in is it you that he was for on are with as I his they be at one have and this);
-
-  my $mongo_client = MongoDB::MongoClient->new
-  (
-    host => 'linus.mongohq.com',
-    port => 10089,
-    db_name => 'LF',
-    username => 'found',
-    password => 'mojo',
-  );
-
-  my $db = $mongo_client->get_database('LF');
-  my $losts = $db->get_collection('Lost');
-  my $founds = $db->get_collection('Found');
-
   my $lost_c = $losts->query( {Matched => 0} );
 
   while(my $lost = $lost_c->next)
