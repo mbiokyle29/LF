@@ -39,7 +39,11 @@ post '/no' => sub
   $losts->update
   (
     { _id => $lost_oid },
-    { '$push' => { Rejects => $rej_oid } },
+    {
+      '$push' => { Rejects => $rej_oid },
+      '$pull' => { PMatch_id => $rej_oid }
+    },
+
     { 'upsert' => 1 }
   );
   $self->render(text => 'YEAH');
@@ -93,22 +97,19 @@ sub match_maker
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
-    my @l_PM;
-    if ($lost->{PMatch_id})
-    {
-      my @l_PM = @{ $lost->{PMatch_id}};
-    }
+    my @l_PM = @{ $lost->{PMatch_id}};
+    my @l_R = @{ $lost->{Rejects}};
 
     my $found_c = $founds->query({Matched => 0});
     while(my $found = $found_c->next)
     {
 
-      my $inP = 0;
-      if($l_PM[0])
-      {
-        foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $inP = 1; } }
-      }
-      next if($inP);
+      my $black_list = 0;
+
+      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+
+      next if($black_list);
 
       my $found_ref = MongoDB::DBRef->new( db=> 'LF', ref => $founds, id => $found->{_id} );
 
