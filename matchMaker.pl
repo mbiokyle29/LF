@@ -74,8 +74,12 @@ while(my $lost = $lost_c->next)
           }
         }
       }
-      ## matches has raw tag match, add some stuff ##
-      if($total > $best_total) { $best_total = $total; $best_ref = $found_ref; }
+      say $total;
+      if($total > 1)
+      {
+      $losts->update({ _id => $lost_ref->{id} }, { '$set' => { Matched => 1, PMatch_id => $best_ref->{id} } }, { 'upsert' => 1 } );
+      $founds->update({ _id => $best_ref->{id} }, { '$set' => { Matched => 1, PMatch_id => $lost_ref->{id} } }, { 'upsert' => 1 } );
+      }
     }
   }
 }
