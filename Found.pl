@@ -73,10 +73,16 @@ sub match_maker
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
+    my @l_PM = @{ $lost->{PMatch_id}};
 
     my $found_c = $founds->query({Matched => 0});
     while(my $found = $found_c->next)
     {
+
+      my $inP = 0;
+      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $inP = 1; } }
+      next if($inP);
+
       my $found_ref = MongoDB::DBRef->new( db=> 'LF', ref => $founds, id => $found->{_id} );
 
       # Found Vars for matching
@@ -108,14 +114,15 @@ sub match_maker
     }
     if($best_ref && $best_total > 1)
     {
+      #next if($lost_ref->{Pmatch_id})
       $losts->update(  { _id => $lost_ref->{id} }, { '$push' => { PMatch_id => $best_ref->{id} } },  { 'upsert' => 1 } );
       $founds->update( { _id => $best_ref->{id} }, { '$push' => { PMatch_id => $lost_ref->{id} } },  { 'upsert' => 1 } );
     }
   }
 }
 app->start;
-__DATA__
 
+__DATA__
 @@index.html.ep
   <div style="margin-left:auto;margin-right:auto;">
     <h1>Lost and Found MatchMaker Backend</h1>
