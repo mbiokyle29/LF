@@ -22,6 +22,13 @@ my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
 my $users = $db->get_collection('users');
 
+get '/auth' => sub
+{
+  my $self-> shift;
+  my $req = $self->tx->req;
+  $self->render(text => $req);
+};
+
 get '/' => sub
 {
   my $self = shift;
