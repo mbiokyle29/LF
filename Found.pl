@@ -4,6 +4,10 @@ use MongoDB;
 use MongoDB::OID;
 use String::Approx 'amatch';
 
+##
+use Data::Dumper;
+###
+
 my $mongo_client = MongoDB::MongoClient->new
 (
   host => 'linus.mongohq.com',
@@ -16,6 +20,7 @@ my $mongo_client = MongoDB::MongoClient->new
 my $db = $mongo_client->get_database('LF');
 my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
+my $users = $db->get_collection('users');
 
 get '/' => sub
 {
@@ -85,6 +90,100 @@ get '/ios-7/end/found' => sub
 {
   my @all_founds = ($founds->query({}))->all;
   shift->render(json => \@all_founds)
+};
+
+any '/ios-7/end/insert-lost' => sub
+{
+  my $self = shift;
+  my $req = $self->tx->req;
+  my $hash = $req->json;
+
+  #ITEM
+  my $item = $hash->{'Item'};
+  #EMAIL
+  my $email = $hash->{'email'};
+  #DESC
+  my $desc = $hash->{'Description'};
+  #LOC
+  my $loc = $hash->{'Location'};
+  #TAGS
+  my @tags = @{ $hash->{'Tags'}};
+
+  my $its_in = $users->count({Email => $email});
+  unless($its_in)
+  {
+    $email =~ m/^(\w+)@(.+)$/;
+    my $first_name = $1;
+    my $last_name = $2;
+    $users->insert
+    (
+      {
+        "email" => $email,
+        "first" => $first_name,
+        "last" => $last_name,
+      }
+    );
+  }
+
+  ## INSERT ##
+  $losts->insert
+  (
+    {
+      "Item" => $item,
+      "email" => $email,
+      "Description" => $desc,
+      "Location" => $loc,
+      "Tags" => @tags,
+    }
+  );
+  $self->render(text => $hash->{'Test'});
+};
+
+any '/ios-7/end/insert-found' => sub
+{
+  my $self = shift;
+  my $req = $self->tx->req;
+  my $hash = $req->json;
+
+  #ITEM
+  my $item = $hash->{'Item'};
+  #EMAIL
+  my $email = $hash->{'email'};
+  #DESC
+  my $desc = $hash->{'Description'};
+  #LOC
+  my $loc = $hash->{'Location'};
+  #TAGS
+  my @tags = @{ $hash->{'Tags'}};
+
+  my $its_in = $users->count({Email => $email});
+  unless($its_in)
+  {
+    $email =~ m/^(\w+)@(.+)$/;
+    my $first_name = $1;
+    my $last_name = $2;
+    $users->insert
+    (
+      {
+        "email" => $email,
+        "first" => $first_name,
+        "last" => $last_name,
+      }
+    );
+  }
+
+  ## INSERT ##
+  $founds->insert
+  (
+    {
+      "Item" => $item,
+      "email" => $email,
+      "Description" => $desc,
+      "Location" => $loc,
+      "Tags" => @tags,
+    }
+  );
+  $self->render(text => "OKAY");
 };
 
 sub match_maker
