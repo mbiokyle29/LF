@@ -32,17 +32,35 @@ post '/run' => sub
 post '/no' => sub
 {
   my $self = shift;
-  my $rejected_ref = $self->param('Reject');
+  my $rej_ref = $self->param('Reject');
   my $lost_ref = $self->param('Lost');
-  ##
-  $self->render(text => "$rejected_ref   $lost_ref");
-  ##
-  #$losts->update
-  #(
-  #  { _id => $lost_ref->{_id} },
-  #  { '$push' => { Rejects => $rejected_ref->{_id} } },
-  #  { 'upsert' => 1 }
-  #);
+  my $lost_oid = new MongoDB::OID(value => $lost_ref);
+  my $rej_oid = new MongoDB::OID(value => $rej_ref);
+  $losts->update
+  (
+    { _id => $lost_oid },
+    { '$push' => { Rejects => $rej_oid } },
+    { 'upsert' => 1 }
+  );
+};
+
+post '/yes' => sub
+{
+  my $self = shift;
+  my $found_ref = $self->param('Found');
+  my $lost_ref = $self->param('Lost');
+  my $found_oid = new MongoDB::OID(value => $found_ref);
+  my $lost_oid = new MongoDB::OID(value => $lost_ref);
+  $losts->update
+  (
+    { _id => $lost_oid },
+    { '$set' => { Matched => 1 } },
+  );
+  $founds->update
+  (
+    { _id => $found_oid },
+    { '$set' => { Matched => 1 } },
+  );
 };
 
 get '/ios-7/end/lost' => sub
