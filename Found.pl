@@ -25,7 +25,7 @@ get '/' => sub
 
 post '/run' => sub
 {
-  sleep 5;
+  sleep 15;
   &match_maker;
   shift->render(text => 'YEAH');
 };
