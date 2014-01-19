@@ -30,6 +30,7 @@ my $users = $db->get_collection('users');
 any '/start' => sub
 {
   $ua->post($request);
+  shift->render(text => "FUCk");
 };
 
 any '/auth' => sub
