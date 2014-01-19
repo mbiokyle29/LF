@@ -59,12 +59,18 @@ post '/yes' => sub
   $losts->update
   (
     { _id => $lost_oid },
-    { '$set' => { Matched => 1 } },
+    {
+      '$set' => { Matched => 1 },
+      '$pull' => { PMatch_id => $found_oid }
+    },
   );
   $founds->update
   (
     { _id => $found_oid },
-    { '$set' => { Matched => 1 } },
+    {
+      '$set' => { Matched => 1 },
+      '$pull' => { PMatch_id => $lost_oid }
+    },
   );
   $self->render(text => 'YEAH');
 };
