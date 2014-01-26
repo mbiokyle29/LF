@@ -26,10 +26,9 @@ get '/' => sub
   $self->render('index');
 };
 
-post '/run' => sub
+post '/match' => sub
 {
   &match_maker();
-  shift->render(text => 'YEAH');
 };
 
 post '/no' => sub

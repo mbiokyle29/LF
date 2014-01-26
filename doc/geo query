@@ -1,0 +1,16 @@
+db.Test.findOne( location.coordinates : { $near : { $geometry : { type : "Point" , coordinates : [40,5] }, $maxDistance : 10 } } )
+db.Test.findOne
+(
+  {
+    location =>
+    {
+      '$near' => {
+        $geometry => {
+          type => "Point",
+          coordinates => [40,5]
+          }
+        },
+      '$maxDistance' => 10
+    }
+  }
+)
