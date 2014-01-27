@@ -3,7 +3,11 @@ use warnings;
 use strict;
 use MongoDB;
 use MongoDB::OID;
+use Mojo::UserAgent;
 use String::Approx 'amatch';
+use Data::Dumper;
+
+my $ua = Mojo::UserAgent->new;
 
 my $mongo_client = MongoDB::MongoClient->new
 (
@@ -19,6 +23,15 @@ my $db = $mongo_client->get_database('Geo_test');
 my $losts = $db->get_collection('Lost');
 my $founds = $db->get_collection('Found');
 &match_maker;
+
+
+sub get_synos
+{
+  my $word = shift;
+  print "FOR $word  \n";
+  my $call = $ua->get("http://words.bighugelabs.com/api/2/d402c6eb64be2e6cefb26b551d2a85c3/$word/");
+  my $string =  $call->res->to_string();
+}
 
 sub match_maker
 {
@@ -40,12 +53,26 @@ sub match_maker
     my @loc = @{$lost->{loc}{coordinates}};
     my @l_PM;
     my @l_R;
+    my @synos;
 
     # If record as a PMatch_id  TODO TODO
     if($lost->{PMatch_id}) { @l_PM = @{ $lost->{PMatch_id} }; }
 
     # Same as above TODO TODO TODO
     if($lost->{Rejects}) { @l_R = @{ $lost->{Rejects} }; }
+
+    ##
+    #Get get_synos
+    ##
+    foreach my $tag (@l_tags)
+    {
+      print "for $tag \n";
+      my @syno = &get_synos($tag);
+      print Dumper @syno;
+      push(@synos, @syno );
+    }
+    ##
+    ##
 
     my $found_c = $founds->query
     (
@@ -111,4 +138,3 @@ sub match_maker
     }
   }
 }
-return 1;

@@ -191,57 +191,50 @@ sub match_maker
 
   while(my $lost = $lost_c->next)
   {
+
+    # Keep a static ref to current lost record
     my $lost_ref = MongoDB::DBRef->new( db => 'LF', ref => $losts, id => $lost->{_id} );
     my $best_ref;
     my $best_total = 0;
 
-    # Lost Vars for matching
-    my $l_loc = $lost->{Location};
+    # Lost record values
     my $l_desc = $lost->{Description};
     my $l_item = $lost->{Item};
     my @l_tags = @{ $lost->{Tags}};
-    my @l_PM;
-    my @l_R;
+    my @loc = @{$lost->{location}{coordinates}};
+    my @l_PM = @{ $lost->{PMatch_id} };
+    my @l_R = @{ $lost->{Rejects} };
 
-    if($lost->{PMatch_id})
-    {
-      @l_PM = @{ $lost->{PMatch_id} };
-    }
+    my $found_c = $founds->query
+    (
+      {
+        Matched => 0,
+        location =>
+        {
+          '$nearSphere' =>
+          {
+            '$geometry' => { type => "Point", coordinates => [$loc[0],$loc[1]] }
+          },
+          '$maxDistance' => 10
+         }
+       }
+   );
 
-    if($lost->{Rejects})
-    {
-      @l_R = @{ $lost->{Rejects} };
-    }
-
-    my $found_c = $founds->query({Matched => 0});
-    while(my $found = $found_c->next)
-    {
-
+   while(my $found = $found_c->next)
+   {
       my $black_list = 0;
-      if(@l_PM)
-      {
-        foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
-      }
-
-      if(@l_R)
-      {
-        foreach my $arr (@l_R) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
-      }
-
+      foreach my $arr (@l_PM) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
+      foreach my $arr (@l_R) { if($arr->{value} eq $found->{_id}->{value}) { $black_list = 1; } }
       next if($black_list);
 
       my $found_ref = MongoDB::DBRef->new( db=> 'LF', ref => $founds, id => $found->{_id} );
 
       # Found Vars for matching
-      my $f_loc = $found->{Location};
       my $f_desc = $found->{Description};
       my $f_item = $found->{Item};
       my @f_tags = @{ $found->{Tags}};
 
       my $total = 0;
-
-      if(amatch($l_loc,["i"],$f_loc))
-      {
         foreach my $tagl (@l_tags)
         {
           $tagl =~ s/\s//g;
@@ -257,8 +250,8 @@ sub match_maker
           }
         }
         if($total > $best_total) { $best_total = $total; $best_ref = $found_ref; }
-      }
     }
+
     if($best_ref && $best_total > 1)
     {
       #next if($lost_ref->{Pmatch_id})
@@ -267,6 +260,7 @@ sub match_maker
     }
   }
 }
+
 app->start;
 
 __DATA__
